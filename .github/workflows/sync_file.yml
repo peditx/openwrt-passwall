@@ -1,0 +1,31 @@
+name: Sync File and Repository Weekly and Manually
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+jobs:
+  sync-and-replace:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Sync with Upstream
+      run: |
+        git remote add upstream https://github.com/xiaorouji/openwrt-passwall.git
+        git fetch upstream
+        git merge upstream/main --allow-unrelated-histories || true
+        git push origin main
+
+    - name: Replace File
+      run: |
+        curl -o luci-app-passwall/luasrc/view/passwall/global/status.htm \
+        https://raw.githubusercontent.com/peditx/iranIPS/refs/heads/main/.files/lowspc/main/new/backup/1/status.htm
+        git config user.name "GitHub Action"
+        git config user.email "action@github.com"
+        git add luci-app-passwall/luasrc/view/passwall/global/status.htm
+        git commit -m "Updated status.htm from source"
+        git push origin main
