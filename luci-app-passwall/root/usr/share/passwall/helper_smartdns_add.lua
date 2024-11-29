@@ -90,6 +90,15 @@ local function insert_array_after(array1, array2, target) --将array2插入到ar
 	merge_array(array1, array2)
 end
 
+local function get_geosite(list_arg, out_path)
+	local geosite_path = uci:get(appname, "@global_rules[0]", "v2ray_location_asset")
+	geosite_path = geosite_path:match("^(.*)/") .. "/geosite.dat"
+	if not is_file_nonzero(geosite_path) then return end
+	if api.is_finded("geoview") and list_arg and out_path then
+		sys.exec("geoview -type geosite -append=true -input " .. geosite_path .. " -list '" .. list_arg .. "' -output " .. out_path)
+	end
+end
+
 if not fs.access(FLAG_PATH) then
 	fs.mkdir(FLAG_PATH)
 end
@@ -98,9 +107,50 @@ if not fs.access(CACHE_PATH) then
 	fs.mkdir(CACHE_PATH)
 end
 
+local LOCAL_EXTEND_ARG = ""
 if LOCAL_GROUP == "nil" then
 	LOCAL_GROUP = nil
-	log("  * 注意：国内分组名未设置，可能会导致 DNS 解析异常！")
+	log("  * 注意：国内分组名未设置，可能会导致 DNS 分流错误！")
+else
+	--从smartdns配置中读取参数
+	local custom_conf_path = "/etc/smartdns/custom.conf"
+	local options = {
+		{key = "dualstack_ip_selection", config_key = "dualstack-ip-selection", yes_no = true, arg_yes = "-d yes", arg_no = "-d no", default = "yes"},
+		{key = "speed_check_mode", config_key = "speed-check-mode", prefix = "-c ", default = "ping,tcp:80,tcp:443"},
+		{key = "serve_expired", config_key = "serve-expired", yes_no = true, arg_yes = "", arg_no = "-no-serve-expired", default = "yes"},
+		{key = "response_mode", config_key = "response-mode", prefix = "-r ", default = "first-ping"},
+		{key = "rr_ttl", config_key = "rr-ttl", prefix = "-rr-ttl "},
+		{key = "rr_ttl_min", config_key = "rr-ttl-min", prefix = "-rr-ttl-min "},
+		{key = "rr_ttl_max", config_key = "rr-ttl-max", prefix = "-rr-ttl-max "}
+	}
+	-- 从 custom.conf 中读取值，以最后出现的值为准
+	local custom_config = {}
+	local f_in = io.open(custom_conf_path, "r")
+	if f_in then
+		for line in f_in:lines() do
+			line = line:match("^%s*(.-)%s*$")
+			if line ~= "" and not line:match("^#") then
+				local param, value = line:match("^(%S+)%s+(%S+)$")
+				if param and value then custom_config[param] = value end
+			end
+		end
+		f_in:close()
+	end
+	-- 从 smartdns 配置中读取值，优先级以 custom.conf 为准
+	for _, opt in ipairs(options) do
+		local val = custom_config[opt.config_key] or uci:get("smartdns", "@smartdns[0]", opt.key) or opt.default
+		if val == "yes" then val = "1" elseif val == "no" then val = "0" end
+		if opt.yes_no then
+			local arg = (val == "1" and opt.arg_yes or opt.arg_no)
+			if arg and arg ~= "" then
+				LOCAL_EXTEND_ARG = LOCAL_EXTEND_ARG .. (LOCAL_EXTEND_ARG ~= "" and " " or "") .. arg
+			end
+		else
+			if val and (not opt.value or (opt.invert and val ~= opt.value) or (not opt.invert and val == opt.value)) then
+				LOCAL_EXTEND_ARG = LOCAL_EXTEND_ARG .. (LOCAL_EXTEND_ARG ~= "" and " " or "") .. (opt.prefix or "") .. (opt.arg or val)
+			end
+		end
+	end
 end
 
 if not REMOTE_GROUP or REMOTE_GROUP == "nil" then
@@ -167,6 +217,8 @@ if DEFAULT_DNS_GROUP then
 		if NO_PROXY_IPV6 == "1" and only_global == 1 and uci:get(appname, TCP_NODE, "protocol") ~= "_shunt" then
 			domain_rules_str = domain_rules_str .. " -address #6"
 		end
+	elseif DEFAULT_DNS_GROUP == LOCAL_GROUP then
+		domain_rules_str = domain_rules_str .. (LOCAL_EXTEND_ARG ~= "" and " " .. LOCAL_EXTEND_ARG or "")
 	end
 	table.insert(config_lines, domain_rules_str)
 end
@@ -211,11 +263,14 @@ local file_vpslist = TMP_ACL_PATH .. "/vpslist"
 if not is_file_nonzero(file_vpslist) then
 	local f_out = io.open(file_vpslist, "w")
 	uci:foreach(appname, "nodes", function(t)
-		local address = t.address
-		if address == "engage.cloudflareclient.com" then return end
-		if datatypes.hostname(address) then
-			f_out:write(address .. "\n")
+		local function process_address(address)
+			if address == "engage.cloudflareclient.com" then return end
+			if datatypes.hostname(address) then
+				f_out:write(address .. "\n")
+			end
 		end
+		process_address(t.address)
+		process_address(t.download_address)
 	end)
 	f_out:close()
 end
@@ -226,6 +281,7 @@ if is_file_nonzero(file_vpslist) then
 	}
 	local domain_rules_str = string.format('domain-rules /domain-set:%s/ %s', domain_set_name, LOCAL_GROUP and "-nameserver " .. LOCAL_GROUP or "")
 	domain_rules_str = domain_rules_str .. " " .. set_type .. " #4:" .. setflag .. "passwall_vpslist,#6:" .. setflag .. "passwall_vpslist6"
+	domain_rules_str = domain_rules_str .. (LOCAL_EXTEND_ARG ~= "" and " " .. LOCAL_EXTEND_ARG or "")
 	table.insert(tmp_lines, domain_rules_str)
 	insert_array_after(config_lines, tmp_lines, "#--8")
 	log(string.format("  - 节点列表中的域名(vpslist)使用分组：%s", LOCAL_GROUP or "默认"))
@@ -256,6 +312,7 @@ if USE_DIRECT_LIST == "1" and is_file_nonzero(file_direct_host) then
 	}
 	local domain_rules_str = string.format('domain-rules /domain-set:%s/ %s', domain_set_name, LOCAL_GROUP and "-nameserver " .. LOCAL_GROUP or "")
 	domain_rules_str = domain_rules_str .. " " .. set_type .. " #4:" .. setflag .. "passwall_whitelist,#6:" .. setflag .. "passwall_whitelist6"
+	domain_rules_str = domain_rules_str .. (LOCAL_EXTEND_ARG ~= "" and " " .. LOCAL_EXTEND_ARG or "")
 	table.insert(tmp_lines, domain_rules_str)
 	insert_array_after(config_lines, tmp_lines, "#--6")
 	log(string.format("  - 域名白名单(whitelist)使用分组：%s", LOCAL_GROUP or "默认"))
@@ -328,6 +385,7 @@ if CHN_LIST ~= "0" and is_file_nonzero(RULES_PATH .. "/chnlist") then
 	if CHN_LIST == "direct" then
 		local domain_rules_str = string.format('domain-rules /domain-set:%s/ %s', domain_set_name, LOCAL_GROUP and "-nameserver " .. LOCAL_GROUP or "")
 		domain_rules_str = domain_rules_str .. " " .. set_type .. " #4:" .. setflag .. "passwall_chnroute,#6:" .. setflag .. "passwall_chnroute6"
+		domain_rules_str = domain_rules_str .. (LOCAL_EXTEND_ARG ~= "" and " " .. LOCAL_EXTEND_ARG or "")
 		table.insert(tmp_lines, domain_rules_str)
 		insert_array_after(config_lines, tmp_lines, "#--2")
 		log(string.format("  - 中国域名表(chnroute)使用分组：%s", LOCAL_GROUP or "默认"))
@@ -356,6 +414,7 @@ if uci:get(appname, TCP_NODE, "protocol") == "_shunt" then
 	local shunt_domain, lookup_shunt_domain = {}, {}
 	local file_white_host = FLAG_PATH .. "/shunt_direct_host"
 	local file_shunt_host = FLAG_PATH .. "/shunt_proxy_host"
+	local geosite_white_arg, geosite_shunt_arg = "", ""
 
 	local t = uci:get_all(appname, TCP_NODE)
 	local default_node_id = t["default_node"] or "_direct"
@@ -368,19 +427,25 @@ if uci:get(appname, TCP_NODE, "protocol") == "_shunt" then
 
 			local domain_list = s.domain_list or ""
 			for line in string.gmatch(domain_list, "[^\r\n]+") do
-				if line ~= "" and not line:find("#") and not line:find("regexp:") and not line:find("geosite:") and not line:find("ext:") then
-					if line:find("domain:") or line:find("full:") then
+				if line ~= "" and not line:find("#") and not line:find("regexp:") and not line:find("ext:") then
+					if line:find("geosite:") then
 						line = string.match(line, ":([^:]+)$")
-					end
-					line = api.get_std_domain(line)
-
-					if _node_id == "_direct" then
-						if line ~= "" and not line:find("#") then
-							insert_unique(white_domain, line, lookup_white_domain)
+						if _node_id == "_direct" then
+							geosite_white_arg = geosite_white_arg .. (geosite_white_arg ~= "" and "," or "") .. line
+						else
+							geosite_shunt_arg = geosite_shunt_arg .. (geosite_shunt_arg ~= "" and "," or "") .. line
 						end
 					else
+						if line:find("domain:") or line:find("full:") then
+							line = string.match(line, ":([^:]+)$")
+						end
+						line = api.get_std_domain(line)
 						if line ~= "" and not line:find("#") then
-							insert_unique(shunt_domain, line, lookup_shunt_domain)
+							if _node_id == "_direct" then
+								insert_unique(white_domain, line, lookup_white_domain)
+							else
+								insert_unique(shunt_domain, line, lookup_shunt_domain)
+							end
 						end
 					end
 				end
@@ -412,15 +477,30 @@ if uci:get(appname, TCP_NODE, "protocol") == "_shunt" then
 		end
 	end
 
+	local use_geoview = uci:get(appname, "@global_rules[0]", "enable_geoview")
+	if USE_GFW_LIST == "1" and CHN_LIST == "0" and use_geoview == "1" then  --仅GFW模式解析geosite
+		if geosite_white_arg ~= "" then
+			get_geosite(geosite_white_arg, file_white_host)
+		end
+		if geosite_shunt_arg ~= "" then
+			get_geosite(geosite_shunt_arg, file_shunt_host)
+		end
+	end
+
 	if is_file_nonzero(file_white_host) then
 		local domain_set_name = "passwall-whitehost"
 		tmp_lines = {
 			string.format("domain-set -name %s -file %s", domain_set_name, file_white_host)
 		}
 		local domain_rules_str = string.format('domain-rules /domain-set:%s/ %s', domain_set_name, LOCAL_GROUP and "-nameserver " .. LOCAL_GROUP or "")
-		domain_rules_str = domain_rules_str .. " " .. set_type .. " #4:" .. setflag .. "passwall_whitelist,#6:" .. setflag .. "passwall_whitelist6"
+		if USE_DIRECT_LIST == "1" then
+			domain_rules_str = domain_rules_str .. " " .. set_type .. " #4:" .. setflag .. "passwall_whitelist,#6:" .. setflag .. "passwall_whitelist6"
+		else
+			domain_rules_str = domain_rules_str .. " " .. set_type .. " #4:" .. setflag .. "passwall_shuntlist,#6:" .. setflag .. "passwall_shuntlist6"
+		end
+		domain_rules_str = domain_rules_str .. (LOCAL_EXTEND_ARG ~= "" and " " .. LOCAL_EXTEND_ARG or "")
 		table.insert(tmp_lines, domain_rules_str)
-		insert_array_after(config_lines, tmp_lines, "#--3")
+		insert_array_after(config_lines, tmp_lines, "#--4")
 	end
 
 	if is_file_nonzero(file_shunt_host) then
@@ -438,7 +518,7 @@ if uci:get(appname, TCP_NODE, "protocol") == "_shunt" then
 			domain_rules_str = domain_rules_str .. " -d no " .. set_type .. " #4:" .. setflag .. "passwall_shuntlist" .. ",#6:" .. setflag .. "passwall_shuntlist6"
 		end
 		table.insert(tmp_lines, domain_rules_str)
-		insert_array_after(config_lines, tmp_lines, "#--4")
+		insert_array_after(config_lines, tmp_lines, "#--3")
 	end
 
 end
