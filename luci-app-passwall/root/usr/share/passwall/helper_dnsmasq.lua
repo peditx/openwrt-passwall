@@ -382,7 +382,7 @@ function add_rule(var)
 			end
 		end
 
-		--Direct connection（Whitelist）列表
+		--Direct connection（Whitelist）List
 		if USE_DIRECT_LIST == "1" then
 			if fs.access("/usr/share/passwall/rules/direct_host") then
 				fwd_dns = LOCAL_DNS
@@ -431,7 +431,7 @@ function add_rule(var)
 					if REMOTE_FAKEDNS == "1" then
 						sets = {}
 					end
-					--Always use remoteDNSAnalysis agent（黑名单）List
+					--Always use remoteDNSAnalysis agent（blacklist）List
 					for line in io.lines("/usr/share/passwall/rules/proxy_host") do
 						line = api.get_std_domain(line)
 						if line ~= "" and not line:find("#") then
@@ -490,7 +490,7 @@ function add_rule(var)
 			end
 		end
 
-		--中国列表
+		--Chinese list
 		if CHN_LIST ~= "0" then
 			if fs.access("/usr/share/passwall/rules/chnlist") then
 				fwd_dns = nil
@@ -532,7 +532,7 @@ function add_rule(var)
 							set_domain_ipset(line, table.concat(sets, ","))
 						end
 					end
-					log(string.format("  - China Domain Table(chnroute)：%s", fwd_dns or "默认"))
+					log(string.format("  - China Domain Table(chnroute)：%s", fwd_dns or "default"))
 				end
 			end
 		end

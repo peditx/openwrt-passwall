@@ -121,7 +121,7 @@ local function non_file_check(file_path, vali_file)
 			if remote_file_size == local_file_size then
 				return nil;
 			else
-				log("下载文件大小校验出错，Original file size" .. remote_file_size .. "B，下载文件大小：" .. local_file_size .. "B。")
+				log("Download the file size of the file，Original file size" .. remote_file_size .. "B，Download file size：" .. local_file_size .. "B。")
 				return true;
 			end
 		else
@@ -143,18 +143,18 @@ local function fetch_rule(rule_name,rule_type,url,exclude_domain)
 	local download_file_tmp = "/tmp/" ..rule_name.. "_dl"
 	local unsort_file_tmp = "/tmp/" ..rule_name.. "_unsort"
 
-	log(rule_name.. " 开始更新...")
+	log(rule_name.. " Start update...")
 	for k,v in ipairs(url) do
 		sret_tmp = curl(v, download_file_tmp..k, vali_file..k)
 		if sret_tmp == 200 and non_file_check(download_file_tmp..k, vali_file..k) then
-			log(rule_name.. " 第" ..k.. "条规则:" ..v.. "下载文件过程出错，尝试重新下载。")
+			log(rule_name.. " First" ..k.. "Rules:" ..v.. "Download the file process errors，Try to download again。")
 			os.remove(download_file_tmp..k)
 			os.remove(vali_file..k)
 			sret_tmp = curl(v, download_file_tmp..k, vali_file..k)
 			if sret_tmp == 200 and non_file_check(download_file_tmp..k, vali_file..k) then
 				sret = 0
 				sret_tmp = 0
-				log(rule_name.. " 第" ..k.. "条规则:" ..v.. "下载文件过程出错，请检查网络或下载链接后重试！")
+				log(rule_name.. " First" ..k.. "Rules:" ..v.. "Download the file process errors，Please check the network or download the link and try it out！")
 			end
 		end
 
@@ -213,7 +213,7 @@ local function fetch_rule(rule_name,rule_type,url,exclude_domain)
 			end
 		else
 			sret = 0
-			log(rule_name.. " 第" ..k.. "条规则:" ..v.. "下载失败，Please check the network or download the link and try it out！")
+			log(rule_name.. " First" ..k.. "Rules:" ..v.. "Download failure，Please check the network or download the link and try it out！")
 		end
 		os.remove(download_file_tmp..k)
 		os.remove(vali_file..k)
@@ -254,12 +254,12 @@ local function fetch_rule(rule_name,rule_type,url,exclude_domain)
 			end
 			sys.exec("mv -f "..file_tmp .. " " ..rule_path .. "/" ..rule_name)
 			reboot = 1
-			log(rule_name.. " 更新成功，总规则数 " ..count.. " 条。")
+			log(rule_name.. " Successful update，General Rules " ..count.. " strip。")
 		else
-			log(rule_name.. " 版本一致，无需更新。")
+			log(rule_name.. " Consistent version，No need to update。")
 		end
 	else
-		log(rule_name.. " 文件下载失败！")
+		log(rule_name.. " File download failed！")
 	end
 	os.remove(file_tmp)
 	return 0
@@ -281,9 +281,9 @@ local function fetch_chnlist()
 	fetch_rule("chnlist","domain",chnlist_url,false)
 end
 
---获取geoip
+--Obtaingeoip
 local function fetch_geoip()
-	--请求geoip
+	--askgeoip
 	xpcall(function()
 		local return_code, content = api.curl_auto(geoip_api)
 		local json = jsonc.parse(content)
@@ -302,7 +302,7 @@ local function fetch_geoip()
 						if fs.access(asset_location .. "geoip.dat") then
 							sys.call(string.format("cp -f %s %s", asset_location .. "geoip.dat", "/tmp/geoip.dat"))
 							if sys.call('sha256sum -c /tmp/geoip.dat.sha256sum > /dev/null 2>&1') == 0 then
-								log("geoip 版本一致，无需更新。")
+								log("geoip Consistent version，No need to update。")
 								return 1
 							end
 						end
@@ -315,7 +315,7 @@ local function fetch_geoip()
 									log("geoip Successful update。")
 									return 1
 								else
-									log("geoip 更新失败，请稍后再试。")
+									log("geoip Update failure，Please try again later。")
 								end
 								break
 							end
@@ -332,9 +332,9 @@ local function fetch_geoip()
 	return 0
 end
 
---获取geosite
+--Obtaingeosite
 local function fetch_geosite()
-	--请求geosite
+	--askgeosite
 	xpcall(function()
 		local return_code, content = api.curl_auto(geosite_api)
 		local json = jsonc.parse(content)
@@ -353,7 +353,7 @@ local function fetch_geosite()
 						if fs.access(asset_location .. "geosite.dat") then
 							sys.call(string.format("cp -f %s %s", asset_location .. "geosite.dat", "/tmp/geosite.dat"))
 							if sys.call('sha256sum -c /tmp/geosite.dat.sha256sum > /dev/null 2>&1') == 0 then
-								log("geosite 版本一致，无需更新。")
+								log("geosite Consistent version，No need to update。")
 								return 1
 							end
 						end
@@ -363,10 +363,10 @@ local function fetch_geosite()
 								if sys.call('sha256sum -c /tmp/geosite.dat.sha256sum > /dev/null 2>&1') == 0 then
 									sys.call(string.format("mkdir -p %s && cp -f %s %s", asset_location, "/tmp/geosite.dat", asset_location .. "geosite.dat"))
 									reboot = 1
-									log("geosite 更新成功。")
+									log("geosite Successful update。")
 									return 1
 								else
-									log("geosite 更新失败，请稍后再试。")
+									log("geosite Update failure，Please try again later。")
 								end
 								break
 							end
@@ -416,12 +416,12 @@ if gfwlist_update == "0" and chnroute_update == "0" and chnroute6_update == "0" 
 	os.exit(0)
 end
 
-log("开始更新规则...")
+log("Start update rules...")
 if gfwlist_update == "1" then
 	xpcall(fetch_gfwlist,function(e)
 		log(e)
 		log(debug.traceback())
-		log('更新gfwlist发生错误...')
+		log('renewgfwlistError...')
 	end)
 end
 
@@ -429,7 +429,7 @@ if chnroute_update == "1" then
 	xpcall(fetch_chnroute,function(e)
 		log(e)
 		log(debug.traceback())
-		log('更新chnroute发生错误...')
+		log('renewchnrouteError...')
 	end)
 end
 
@@ -437,7 +437,7 @@ if chnroute6_update == "1" then
 	xpcall(fetch_chnroute6,function(e)
 		log(e)
 		log(debug.traceback())
-		log('更新chnroute6发生错误...')
+		log('renewchnroute6Error...')
 	end)
 end
 
@@ -445,7 +445,7 @@ if chnlist_update == "1" then
 	xpcall(fetch_chnlist,function(e)
 		log(e)
 		log(debug.traceback())
-		log('更新chnlistError...')
+		log('renewchnlistError...')
 	end)
 end
 
@@ -478,8 +478,8 @@ if reboot == 1 then
 		end
 	end
 
-	log("重启服务，应用新的规则。")
+	log("Restart service，Application new rules。")
 	uci:set(name, "@global[0]", "flush_set", "1")
 	api.uci_save(uci, name, true, true)
 end
-log("规则更新完毕...")
+log("The rules are updated...")

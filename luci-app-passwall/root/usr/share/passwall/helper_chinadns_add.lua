@@ -117,7 +117,7 @@ for i = 1, 6 do
 	table.insert(config_lines, "#--" .. i)
 end
 
---自定义规则组，The group in the later statement has higher priority
+--Customized rule group，The group in the later statement has higher priority
 --Shielding list
 local file_block_host = TMP_ACL_PATH .. "/block_host"
 if USE_BLOCK_LIST == "1" and not fs.access(file_block_host) then
@@ -225,7 +225,7 @@ if USE_DIRECT_LIST == "1" and is_file_nonzero(file_direct_host) then
 		"group-ipset " .. table.concat(sets, ",")
 	}
 	insert_array_after(config_lines, tmp_lines, "#--4")
-	log(string.format("  - 域名白名单(whitelist)：%s", DNS_LOCAL or "default"))
+	log(string.format("  - Domain name whitelin(whitelist)：%s", DNS_LOCAL or "default"))
 end
 
 --acting（blacklist）List
@@ -279,7 +279,7 @@ if USE_PROXY_LIST == "1" and is_file_nonzero(file_proxy_host) then
 end
 
 --Built -in group(chn/gfw)The priority is after the custom group
---GFW列表
+--GFWList
 if GFWLIST == "1" and is_file_nonzero(RULES_PATH .. "/gfwlist") then
 	local sets = {
 		setflag .. "passwall_gfw",
@@ -328,7 +328,7 @@ if CHNLIST ~= "0" and is_file_nonzero(RULES_PATH .. "/chnlist") then
 		}
 		if NO_IPV6_TRUST == "1" then table.insert(tmp_lines, "no-ipv6 tag:chn_proxy") end
 		insert_array_after(config_lines, tmp_lines, "#--1")
-		log(string.format("  - 中国域名表(chnroute)：%s", DNS_TRUST or "default"))
+		log(string.format("  - China Domain Table(chnroute)：%s", DNS_TRUST or "default"))
 	end
 end
 

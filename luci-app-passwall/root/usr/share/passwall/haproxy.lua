@@ -40,8 +40,8 @@ local bind_local = uci:get(appname, "@global_haproxy[0]", "bind_local") or "0"
 local bind_address = "0.0.0.0"
 if bind_local == "1" then bind_address = "127.0.0.1" end
 
-log("HAPROXY 负载均衡：")
-log(string.format("  * 控制台端口：%s", console_port))
+log("HAPROXY Load balancing：")
+log(string.format("  * Console port：%s", console_port))
 fs.mkdir(haproxy_path)
 local haproxy_file = haproxy_path .. "/" .. haproxy_conf
 
@@ -201,11 +201,11 @@ listen %s
 			sys.call(string.format("/usr/share/passwall/app.sh add_ip2route %s %s", o.origin_address, o.export))
 		end
 
-		log(string.format("  | - 出口节点：%s:%s，权重：%s", o.origin_address, o.origin_port, o.lbweight))
+		log(string.format("  | - Export node：%s:%s，Weight：%s", o.origin_address, o.origin_port, o.lbweight))
 	end
 end
 
---控制台配置
+--Console configuration
 local console_user = uci:get(appname, "@global_haproxy[0]", "console_user")
 local console_password = uci:get(appname, "@global_haproxy[0]", "console_password")
 local str = [[
@@ -221,7 +221,7 @@ f_out:write("\n" .. string.format(str, console_port, (console_user and console_u
 
 f_out:close()
 
---passwall内置健康检查URL
+--passwallBuilt -in health checkURL
 if health_check_type == "passwall_logic" then
 	local probeUrl = uci:get(appname, "@global_haproxy[0]", "health_probe_url") or "https://www.google.com/generate_204"
 	local f_url = io.open(haproxy_path .. "/Probe_URL", "w")

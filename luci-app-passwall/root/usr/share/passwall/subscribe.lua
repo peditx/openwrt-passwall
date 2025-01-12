@@ -319,7 +319,7 @@ do
 				}
 			end
 		else
-			--前置代理节点
+			--Front proxy node
 			local currentNode = uci:get_all(appname, node_id) or nil
 			if currentNode and currentNode.preproxy_node then
 				CONFIG[#CONFIG + 1] = {
@@ -1421,7 +1421,7 @@ local function select_node(nodes, config, parentConfig)
 					if node.remarks then
 						if node.remarks == config.currentNode.remarks then
 							if config.log == nil or config.log == true then
-								log('更新【' .. config.remarks .. '】Fifth matching node：' .. node.remarks)
+								log('renew【' .. config.remarks .. '】Fifth matching node：' .. node.remarks)
 							end
 							server = node[".name"]
 							break
@@ -1546,7 +1546,7 @@ local function parse_link(raw, add_mode, add_from, cfgid)
 				password = nodes.password
 			}
 			local servers = {}
-			-- SSBread inside 干脆直接这样
+			-- SSBread inside Simply like this
 			for _, server in ipairs(nodes.servers) do
 				tinsert(servers, setmetatable(server, { __index = extra }))
 			end
@@ -1597,7 +1597,7 @@ local function parse_link(raw, add_mode, add_from, cfgid)
 					end
 				end, function (err)
 					--log(err)
-					log(v, "Analysis error，跳过此节点。")
+					log(v, "Analysis error，Skip this node。")
 				end
 			)
 			end
@@ -1683,7 +1683,7 @@ local execute = function()
 			end
 			local ua = value.user_agent
 			local access_mode = value.access_mode
-			local result = (not access_mode) and "automatic" or (access_mode == "direct" and "Direct access" or (access_mode == "proxy" and "Pass an agent" or "自动"))
+			local result = (not access_mode) and "automatic" or (access_mode == "direct" and "Direct access" or (access_mode == "proxy" and "Pass an agent" or "automatic"))
 			log('Are subscribing to:【' .. remark .. '】' .. url .. ' [' .. result .. ']')
 			local raw = curl(url, "/tmp/" .. cfgid, ua, access_mode)
 			if raw == 0 then
@@ -1716,7 +1716,7 @@ local execute = function()
 
 		if #fail_list > 0 then
 			for index, value in ipairs(fail_list) do
-				log(string.format('【%s】订阅失败，Maybe the subscription address is invalid，或是网络问题，请诊断！', value.remark))
+				log(string.format('【%s】Subscribe to fail，Maybe the subscription address is invalid，Or network problem，Please diagnose！', value.remark))
 			end
 		end
 		update_node(0)

@@ -67,7 +67,7 @@ local function merge_array(array1, array2)
 	end
 end
 
-local function insert_array_before(array1, array2, target) --Willarray2Insertarray1oftargetFront，target不存在则追加
+local function insert_array_before(array1, array2, target) --Willarray2Insertarray1oftargetFront，targetIf there is no existence
 	for i, line in ipairs(array1) do
 		if line == target then
 			for j = #array2, 1, -1 do
@@ -107,9 +107,9 @@ end
 local LOCAL_EXTEND_ARG = ""
 if LOCAL_GROUP == "nil" then
 	LOCAL_GROUP = nil
-	log("  * Notice：国内分组名未设置，可能会导致 DNS Diversion error！")
+	log("  * Notice：Domestic sub -names are not set up，Might cause DNS Diversion error！")
 else
-	--从smartdnsRead parameter in configuration
+	--fromsmartdnsRead parameter in configuration
 	local custom_conf_path = "/etc/smartdns/custom.conf"
 	local options = {
 		{key = "dualstack_ip_selection", config_key = "dualstack-ip-selection", yes_no = true, arg_yes = "-d yes", arg_no = "-d no", default = "yes"},
@@ -208,7 +208,7 @@ end
 --Set the default DNS Group(Undercover group)
 local DEFAULT_DNS_GROUP = (USE_DEFAULT_DNS == "direct" and LOCAL_GROUP) or
                           (USE_DEFAULT_DNS == "remote" and REMOTE_GROUP)
-local only_global = (DEFAULT_PROXY_MODE == "proxy" and CHN_LIST == "0" and USE_GFW_LIST == "0") and 1 --No Chinese list andGFWWhen the list is(全局)
+local only_global = (DEFAULT_PROXY_MODE == "proxy" and CHN_LIST == "0" and USE_GFW_LIST == "0") and 1 --No Chinese list andGFWWhen the list is(Global)
 if only_global == 1 then
 	DEFAULT_DNS_GROUP = REMOTE_GROUP
 end
@@ -228,12 +228,12 @@ end
 local setflag = (NFTFLAG == "1") and "inet#passwall#" or ""
 local set_type = (NFTFLAG == "1") and "-nftset" or "-ipset"
 
---预设排序标签(The higher the priority, the higher the higher level)
+--Preset sort label(The higher the priority, the higher the higher level)
 for i = 1, 8 do
 	table.insert(config_lines, "#--" .. i)
 end
 
---屏蔽列表
+--Shielding list
 local file_block_host = TMP_ACL_PATH .. "/block_host"
 if USE_BLOCK_LIST == "1" and not fs.access(file_block_host) then
 	local block_domain, lookup_block_domain = {}, {}
@@ -258,7 +258,7 @@ if USE_BLOCK_LIST == "1" and not fs.access(file_block_host) then
 	end
 	if USE_GEOVIEW == "1" and geosite_arg ~= "" and api.is_finded("geoview") then
 		get_geosite(geosite_arg, file_block_host)
-		log("  * 解析[屏蔽列表] Geosite 到屏蔽域名表(blocklist)完成")
+		log("  * Analyze[Shielding list] Geosite To the shielded domain name table(blocklist)Finish")
 	end
 end
 if USE_BLOCK_LIST == "1" and is_file_nonzero(file_block_host) then
@@ -270,7 +270,7 @@ if USE_BLOCK_LIST == "1" and is_file_nonzero(file_block_host) then
 	insert_array_after(config_lines, tmp_lines, "#--7")
 end
 
---Always use domesticDNS解析节点域名
+--Always use domesticDNSAnalysis node domain name
 local file_vpslist = TMP_ACL_PATH .. "/vpslist"
 if not is_file_nonzero(file_vpslist) then
 	local f_out = io.open(file_vpslist, "w")
@@ -300,7 +300,7 @@ if is_file_nonzero(file_vpslist) then
 	domain_rules_str = domain_rules_str .. (LOCAL_EXTEND_ARG ~= "" and " " .. LOCAL_EXTEND_ARG or "")
 	table.insert(tmp_lines, domain_rules_str)
 	insert_array_after(config_lines, tmp_lines, "#--8")
-	log(string.format("  - 节点列表中的域名(vpslist)Use packet：%s", LOCAL_GROUP or "default"))
+	log(string.format("  - The domain name in the node list(vpslist)Use packet：%s", LOCAL_GROUP or "default"))
 end
 
 --Direct connection（Whitelist）List
@@ -328,7 +328,7 @@ if USE_DIRECT_LIST == "1" and not fs.access(file_direct_host) then
 	end
 	if USE_GEOVIEW == "1" and geosite_arg ~= "" and api.is_finded("geoview") then
 		get_geosite(geosite_arg, file_direct_host)
-		log("  * 解析[Direct list] Geosite 到域名白名单(whitelist)完成")
+		log("  * Analyze[Direct list] Geosite List of domain name white(whitelist)Finish")
 	end
 end
 if USE_DIRECT_LIST == "1" and is_file_nonzero(file_direct_host) then
@@ -345,10 +345,10 @@ if USE_DIRECT_LIST == "1" and is_file_nonzero(file_direct_host) then
 	domain_rules_str = domain_rules_str .. (LOCAL_EXTEND_ARG ~= "" and " " .. LOCAL_EXTEND_ARG or "")
 	table.insert(tmp_lines, domain_rules_str)
 	insert_array_after(config_lines, tmp_lines, "#--6")
-	log(string.format("  - 域名白名单(whitelist)使用分组：%s", LOCAL_GROUP or "default"))
+	log(string.format("  - Domain name whitelin(whitelist)Use packet：%s", LOCAL_GROUP or "default"))
 end
 
---代理（黑名单）List
+--acting（blacklist）List
 local file_proxy_host = TMP_ACL_PATH .. "/proxy_host"
 if USE_PROXY_LIST == "1" and not fs.access(file_proxy_host) then
 	local proxy_domain, lookup_proxy_domain = {}, {}
@@ -373,7 +373,7 @@ if USE_PROXY_LIST == "1" and not fs.access(file_proxy_host) then
 	end
 	if USE_GEOVIEW == "1" and geosite_arg ~= "" and api.is_finded("geoview") then
 		get_geosite(geosite_arg, file_proxy_host)
-		log("  * 解析[代理列表] Geosite 到代理域名表(blacklist)Finish")
+		log("  * Analyze[Proxy list] Geosite Agent domain name table(blacklist)Finish")
 	end
 end
 if USE_PROXY_LIST == "1" and is_file_nonzero(file_proxy_host) then
@@ -396,7 +396,7 @@ if USE_PROXY_LIST == "1" and is_file_nonzero(file_proxy_host) then
 	end
 	table.insert(tmp_lines, domain_rules_str)
 	insert_array_after(config_lines, tmp_lines, "#--5")
-	log(string.format("  - 代理域名表(blacklist)使用分组：%s", REMOTE_GROUP or "默认"))
+	log(string.format("  - Agent domain name table(blacklist)Use packet：%s", REMOTE_GROUP or "default"))
 end
 
 --GFWList
@@ -420,10 +420,10 @@ if USE_GFW_LIST == "1" and is_file_nonzero(RULES_PATH .. "/gfwlist") then
 	end
 	table.insert(tmp_lines, domain_rules_str)
 	insert_array_after(config_lines, tmp_lines, "#--1")
-	log(string.format("  - 防火墙域名表(gfwlist)Use packet：%s", REMOTE_GROUP or "default"))
+	log(string.format("  - Fire Wall Domain Table(gfwlist)Use packet：%s", REMOTE_GROUP or "default"))
 end
 
---中国列表
+--Chinese list
 if CHN_LIST ~= "0" and is_file_nonzero(RULES_PATH .. "/chnlist") then
 	local domain_set_name = "passwall-chnlist"
 	tmp_lines = {
@@ -443,7 +443,7 @@ if CHN_LIST ~= "0" and is_file_nonzero(RULES_PATH .. "/chnlist") then
 		log(string.format("  - China Domain Table(chnroute)Use packet：%s", LOCAL_GROUP or "default"))
 	end
 
-	--回中国模式
+	--Back to China
 	if CHN_LIST == "proxy" then
 		local domain_rules_str = string.format('domain-rules /domain-set:%s/ -nameserver %s', domain_set_name, REMOTE_GROUP)
 		domain_rules_str = domain_rules_str .. " -speed-check-mode none"
@@ -460,7 +460,7 @@ if CHN_LIST ~= "0" and is_file_nonzero(RULES_PATH .. "/chnlist") then
 		end
 		table.insert(tmp_lines, domain_rules_str)
 		insert_array_after(config_lines, tmp_lines, "#--2")
-		log(string.format("  - China Domain Table(chnroute)使用分组：%s", REMOTE_GROUP or "default"))
+		log(string.format("  - China Domain Table(chnroute)Use packet：%s", REMOTE_GROUP or "default"))
 	end
 end
 
@@ -508,7 +508,7 @@ if uci:get(appname, TCP_NODE, "protocol") == "_shunt" then
 			end
 
 			if _node_id ~= "_direct" then
-				log(string.format("  - Sing-Box/XrayDiversion rules(%s)Use packet：%s", s.remarks, REMOTE_GROUP or "默认"))
+				log(string.format("  - Sing-Box/XrayDiversion rules(%s)Use packet：%s", s.remarks, REMOTE_GROUP or "default"))
 			end
 		end
 	end)
@@ -533,14 +533,14 @@ if uci:get(appname, TCP_NODE, "protocol") == "_shunt" then
 		end
 	end
 
-	if USE_GFW_LIST == "1" and CHN_LIST == "0" and USE_GEOVIEW == "1" and api.is_finded("geoview") then  --仅GFW模式解析geosite
+	if USE_GFW_LIST == "1" and CHN_LIST == "0" and USE_GEOVIEW == "1" and api.is_finded("geoview") then  --onlyGFWPattern analysisgeosite
 		if geosite_white_arg ~= "" then
 			get_geosite(geosite_white_arg, file_white_host)
 		end
 		if geosite_shunt_arg ~= "" then
 			get_geosite(geosite_shunt_arg, file_shunt_host)
 		end
-		log("  * 解析[分流节点] Geosite 完成")
+		log("  * Analyze[Shunt node] Geosite Finish")
 	end
 
 	if is_file_nonzero(file_white_host) then
@@ -607,9 +607,9 @@ if #config_lines > 0 then
 end
 
 if DEFAULT_DNS_GROUP then
-	log(string.format("  - 默认 DNS 分组：%s", DEFAULT_DNS_GROUP))
+	log(string.format("  - default DNS Group：%s", DEFAULT_DNS_GROUP))
 end
 
 fs.symlink(TMP_CONF_FILE, SMARTDNS_CONF)
 sys.call(string.format('echo "conf-file %s" >> /etc/smartdns/custom.conf', string.gsub(SMARTDNS_CONF, appname, appname .. "*")))
-log("  - 请让SmartDNS作为Dnsmasq的上游或重定向！")
+log("  - PleaseSmartDNSBeDnsmasqUpstream or redirection！")
