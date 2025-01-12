@@ -121,14 +121,14 @@ local function non_file_check(file_path, vali_file)
 			if remote_file_size == local_file_size then
 				return nil;
 			else
-				log("下载文件大小校验出错，原始文件大小" .. remote_file_size .. "B，下载文件大小：" .. local_file_size .. "B。")
+				log("下载文件大小校验出错，Original file size" .. remote_file_size .. "B，下载文件大小：" .. local_file_size .. "B。")
 				return true;
 			end
 		else
 			return nil;
 		end
 	else
-		log("下载文件读取出错。")
+		log("Download the file and read the wrong。")
 		return true;
 	end
 end
@@ -213,7 +213,7 @@ local function fetch_rule(rule_name,rule_type,url,exclude_domain)
 			end
 		else
 			sret = 0
-			log(rule_name.. " 第" ..k.. "条规则:" ..v.. "下载失败，请检查网络或下载链接后重试！")
+			log(rule_name.. " 第" ..k.. "条规则:" ..v.. "下载失败，Please check the network or download the link and try it out！")
 		end
 		os.remove(download_file_tmp..k)
 		os.remove(vali_file..k)
@@ -312,7 +312,7 @@ local function fetch_geoip()
 								if sys.call('sha256sum -c /tmp/geoip.dat.sha256sum > /dev/null 2>&1') == 0 then
 									sys.call(string.format("mkdir -p %s && cp -f %s %s", asset_location, "/tmp/geoip.dat", asset_location .. "geoip.dat"))
 									reboot = 1
-									log("geoip 更新成功。")
+									log("geoip Successful update。")
 									return 1
 								else
 									log("geoip 更新失败，请稍后再试。")
@@ -445,19 +445,19 @@ if chnlist_update == "1" then
 	xpcall(fetch_chnlist,function(e)
 		log(e)
 		log(debug.traceback())
-		log('更新chnlist发生错误...')
+		log('更新chnlistError...')
 	end)
 end
 
 if geoip_update == "1" then
-	log("geoip 开始更新...")
+	log("geoip Start update...")
 	local status = fetch_geoip()
 	os.remove("/tmp/geoip.dat")
 	os.remove("/tmp/geoip.dat.sha256sum")
 end
 
 if geosite_update == "1" then
-	log("geosite 开始更新...")
+	log("geosite Start update...")
 	local status = fetch_geosite()
 	os.remove("/tmp/geosite.dat")
 	os.remove("/tmp/geosite.dat.sha256sum")

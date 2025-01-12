@@ -150,7 +150,7 @@ uci:foreach(appname, "haproxy_config", function(t)
 			t.server_port = server_port
 			table.insert(listens[listen_port], t)
 		else
-			log("  - 丢弃1个明显无效的节点")
+			log("  - throw away1One of the obvious invalid nodes")
 		end
 	end
 end)
@@ -164,7 +164,7 @@ end
 table.sort(sortTable, function(a,b) return (a < b) end)
 
 for i, port in pairs(sortTable) do
-	log("  +  入口 %s:%s" % {bind_address, port})
+	log("  +  Entrance %s:%s" % {bind_address, port})
 
 	f_out:write("\n" .. string.format([[
 listen %s
