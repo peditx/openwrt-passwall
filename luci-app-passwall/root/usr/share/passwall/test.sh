@@ -82,7 +82,7 @@ url_test_node() {
 			local curlx="socks5h://127.0.0.1:${_tmp_port}"
 		fi
 		sleep 1s
-		# 兼容 curl 8.6 time_starttransfer 错误
+		# compatible curl 8.6 time_starttransfer mistake
 		local _cmd="-V 2>/dev/null | head -n 1 | awk '{print \$2}' | cut -d. -f1,2 | tr -d ' \\n'"
 		local _curl="/usr/bin/curl"
 		local curl_ver=$(lua_api "get_bin_version_cache(\"${_curl}\", \"${_cmd}\")")
