@@ -82,7 +82,7 @@ url_test_node() {
 			local curlx="socks5h://127.0.0.1:${_tmp_port}"
 		fi
 		sleep 1s
-		# 兼容 curl 8.6 time_starttransfer 错误
+		# compatible curl 8.6 time_starttransfer mistake
 		local _cmd="-V 2>/dev/null | head -n 1 | awk '{print \$2}' | cut -d. -f1,2 | tr -d ' \\n'"
 		local _curl="/usr/bin/curl"
 		local curl_ver=$(lua_api "get_bin_version_cache(\"${_curl}\", \"${_cmd}\")")
@@ -94,7 +94,7 @@ url_test_node() {
 		local probeUrl="www.google.com/generate_204"
 		[ "${chn_list}" = "proxy" ] && probeUrl="www.baidu.com"
 		result=$(${_curl} --max-time 5 -o /dev/null -I -skL -x ${curlx} ${curl_arg}${probeUrl})
-		# 结束 SS 插件进程
+		# Finish SS Plugin Process
 		local pid_file="/tmp/etc/${CONFIG}/url_test_${node_id}_plugin.pid"
 		[ -s "$pid_file" ] && kill -9 "$(head -n 1 "$pid_file")" >/dev/null 2>&1
 		pgrep -af "url_test_${node_id}" | awk '! /test\.sh/{print $1}' | xargs kill -9 >/dev/null 2>&1
