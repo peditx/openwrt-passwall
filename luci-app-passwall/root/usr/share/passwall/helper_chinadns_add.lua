@@ -63,7 +63,7 @@ local function merge_array(array1, array2)
 	end
 end
 
-local function insert_array_before(array1, array2, target) --将array2插入到array1的target前面，target不存在则追加
+local function insert_array_before(array1, array2, target) --Willarray2Insert intoarray1oftargetFront，targetAppend if it does not exist
 	for i, line in ipairs(array1) do
 		if line == target then
 			for j = #array2, 1, -1 do
@@ -75,7 +75,7 @@ local function insert_array_before(array1, array2, target) --将array2插入到a
 	merge_array(array1, array2)
 end
 
-local function insert_array_after(array1, array2, target) --将array2插入到array1的target后面，target不存在则追加
+local function insert_array_after(array1, array2, target) --Willarray2Insert intoarray1oftargetlater，targetAppend if it does not exist
 	for i, line in ipairs(array1) do
 		if line == target then
 			for j = 1, #array2 do
@@ -121,8 +121,8 @@ for i = 1, 6 do
 	table.insert(config_lines, "#--" .. i)
 end
 
---自定义规则组，后声明的组具有更高优先级
---屏蔽列表
+--Custom rule group，Groups declared later have higher priority
+--Block list
 local file_block_host = TMP_ACL_PATH .. "/block_host"
 if USE_BLOCK_LIST == "1" and not fs.access(file_block_host) then
 	local block_domain, lookup_block_domain = {}, {}
@@ -147,9 +147,9 @@ if USE_BLOCK_LIST == "1" and not fs.access(file_block_host) then
 	end
 	if USE_GEOVIEW == "1" and geosite_arg ~= "" and api.is_finded("geoview") then
 		if get_geosite(geosite_arg, file_block_host) == 0 then
-			log("  * 解析[屏蔽列表] Geosite 到屏蔽域名表(blocklist)完成")
+			log("  * parse[Block list] Geosite To the blocked domain name table(blocklist)Finish")
 		else
-			log("  * 解析[屏蔽列表] Geosite 到屏蔽域名表(blocklist)失败！")
+			log("  * parse[Block list] Geosite To the blocked domain name table(blocklist)fail！")
 		end
 	end
 end
@@ -161,7 +161,7 @@ if USE_BLOCK_LIST == "1" and is_file_nonzero(file_block_host) then
 	insert_array_after(config_lines, tmp_lines, "#--5")
 end
 
---始终用国内DNS解析节点域名
+--Always use domesticDNSResolve node domain name
 local file_vpslist = TMP_ACL_PATH .. "/vpslist"
 if not is_file_nonzero(file_vpslist) then
 	local f_out = io.open(file_vpslist, "w")
@@ -191,10 +191,10 @@ if is_file_nonzero(file_vpslist) then
 		"group-ipset " .. table.concat(sets, ",")
 	}
 	insert_array_after(config_lines, tmp_lines, "#--6")
-	log(string.format("  - 节点列表中的域名(vpslist)：%s", DNS_LOCAL or "默认"))
+	log(string.format("  - Domain name in node list(vpslist)：%s", DNS_LOCAL or "default"))
 end
 
---直连（白名单）列表
+--direct connection（whitelist）list
 local file_direct_host = TMP_ACL_PATH .. "/direct_host"
 if USE_DIRECT_LIST == "1" and not fs.access(file_direct_host) then
 	local direct_domain, lookup_direct_domain = {}, {}
@@ -219,9 +219,9 @@ if USE_DIRECT_LIST == "1" and not fs.access(file_direct_host) then
 	end
 	if USE_GEOVIEW == "1" and geosite_arg ~= "" and api.is_finded("geoview") then
 		if get_geosite(geosite_arg, file_direct_host) == 0 then
-			log("  * 解析[直连列表] Geosite 到域名白名单(whitelist)完成")
+			log("  * parse[Direct connection list] Geosite To the domain name whitelist(whitelist)Finish")
 		else
-			log("  * 解析[直连列表] Geosite 到域名白名单(whitelist)失败！")
+			log("  * parse[Direct connection list] Geosite To the domain name whitelist(whitelist)fail！")
 		end
 	end
 end
@@ -237,10 +237,10 @@ if USE_DIRECT_LIST == "1" and is_file_nonzero(file_direct_host) then
 		"group-ipset " .. table.concat(sets, ",")
 	}
 	insert_array_after(config_lines, tmp_lines, "#--4")
-	log(string.format("  - 域名白名单(whitelist)：%s", DNS_LOCAL or "默认"))
+	log(string.format("  - Domain name whitelist(whitelist)：%s", DNS_LOCAL or "default"))
 end
 
---代理（黑名单）列表
+--acting（blacklist）list
 local file_proxy_host = TMP_ACL_PATH .. "/proxy_host"
 if USE_PROXY_LIST == "1" and not fs.access(file_proxy_host) then
 	local proxy_domain, lookup_proxy_domain = {}, {}
@@ -265,9 +265,9 @@ if USE_PROXY_LIST == "1" and not fs.access(file_proxy_host) then
 	end
 	if USE_GEOVIEW == "1" and geosite_arg ~= "" and api.is_finded("geoview") then
 		if get_geosite(geosite_arg, file_proxy_host) == 0 then
-			log("  * 解析[代理列表] Geosite 到代理域名表(blacklist)完成")
+			log("  * parse[proxy list] Geosite To the proxy domain name table(blacklist)Finish")
 		else
-			log("  * 解析[代理列表] Geosite 到代理域名表(blacklist)失败！")
+			log("  * parse[proxy list] Geosite To the proxy domain name table(blacklist)fail！")
 		end
 	end
 end
@@ -290,11 +290,11 @@ if USE_PROXY_LIST == "1" and is_file_nonzero(file_proxy_host) then
 	}
 	if NO_IPV6_TRUST == "1" then table.insert(tmp_lines, "no-ipv6 tag:proxylist") end
 	insert_array_after(config_lines, tmp_lines, "#--3")
-	log(string.format("  - 代理域名表(blacklist)：%s", DNS_TRUST or "默认"))
+	log(string.format("  - Proxy domain name table(blacklist)：%s", DNS_TRUST or "default"))
 end
 
---内置组(chn/gfw)优先级在自定义组后
---GFW列表
+--Built-in groups(chn/gfw)Priority after custom group
+--GFWlist
 if GFWLIST == "1" and is_file_nonzero(RULES_PATH .. "/gfwlist") then
 	local sets = {
 		setflag .. "passwall_gfw",
@@ -312,10 +312,10 @@ if GFWLIST == "1" and is_file_nonzero(RULES_PATH .. "/gfwlist") then
 	}
 	if NO_IPV6_TRUST == "1" then table.insert(tmp_lines, "no-ipv6 tag:gfw") end
 	merge_array(config_lines, tmp_lines)
-	log(string.format("  - 防火墙域名表(gfwlist)：%s", DNS_TRUST or "默认"))
+	log(string.format("  - Firewall domain name table(gfwlist)：%s", DNS_TRUST or "default"))
 end
 
---中国列表
+--China list
 if CHNLIST ~= "0" and is_file_nonzero(RULES_PATH .. "/chnlist") then
 	if CHNLIST == "direct" then
 		tmp_lines = {
@@ -326,10 +326,10 @@ if CHNLIST ~= "0" and is_file_nonzero(RULES_PATH .. "/chnlist") then
 			"chnlist-first"
 		}
 		merge_array(config_lines, tmp_lines)
-		log(string.format("  - 中国域名表(chnroute)：%s", DNS_LOCAL or "默认"))
+		log(string.format("  - China domain name table(chnroute)：%s", DNS_LOCAL or "default"))
 	end
 
-	--回中国模式
+	--Return to China model
 	if CHNLIST == "proxy" then
 		local sets = {
 			setflag .. "passwall_chn",
@@ -343,11 +343,11 @@ if CHNLIST ~= "0" and is_file_nonzero(RULES_PATH .. "/chnlist") then
 		}
 		if NO_IPV6_TRUST == "1" then table.insert(tmp_lines, "no-ipv6 tag:chn_proxy") end
 		insert_array_after(config_lines, tmp_lines, "#--1")
-		log(string.format("  - 中国域名表(chnroute)：%s", DNS_TRUST or "默认"))
+		log(string.format("  - China domain name table(chnroute)：%s", DNS_TRUST or "default"))
 	end
 end
 
---分流规则
+--Diversion rules
 if uci:get(appname, TCP_NODE, "protocol") == "_shunt" then
 	local white_domain, lookup_white_domain = {}, {}
 	local shunt_domain, lookup_shunt_domain = {}, {}
@@ -391,7 +391,7 @@ if uci:get(appname, TCP_NODE, "protocol") == "_shunt" then
 			end
 
 			if _node_id ~= "_direct" then
-				log(string.format("  - Sing-Box/Xray分流规则(%s)：%s", s.remarks, DNS_TRUST or "默认"))
+				log(string.format("  - Sing-Box/XrayDiversion rules(%s)：%s", s.remarks, DNS_TRUST or "default"))
 			end
 		end
 	end)
@@ -416,7 +416,7 @@ if uci:get(appname, TCP_NODE, "protocol") == "_shunt" then
 		end
 	end
 
-	if GFWLIST == "1" and CHNLIST == "0" and USE_GEOVIEW == "1" and api.is_finded("geoview") then  --仅GFW模式解析geosite
+	if GFWLIST == "1" and CHNLIST == "0" and USE_GEOVIEW == "1" and api.is_finded("geoview") then  --onlyGFWPattern parsinggeosite
 		local return_white, return_shunt
 		if geosite_white_arg ~= "" then
 			return_white = get_geosite(geosite_white_arg, file_white_host)
@@ -425,9 +425,9 @@ if uci:get(appname, TCP_NODE, "protocol") == "_shunt" then
 			return_shunt = get_geosite(geosite_shunt_arg, file_shunt_host)
 		end
 		if (return_white == nil or return_white == 0) and (return_shunt == nil or return_shunt == 0) then
-			log("  * 解析[分流节点] Geosite 完成")
+			log("  * parse[Distribution node] Geosite Finish")
 		else
-			log("  * 解析[分流节点] Geosite 失败！")
+			log("  * parse[Distribution node] Geosite fail！")
 		end
 	end
 
@@ -444,7 +444,7 @@ if uci:get(appname, TCP_NODE, "protocol") == "_shunt" then
 
 	if is_file_nonzero(file_white_host) then
 		if USE_DIRECT_LIST == "1" then
-			--当白名单启用时，添加到白名单组一同处理
+			--When whitelist is enabled，Add to whitelist group for processing together
 			for i, v in ipairs(config_lines) do
 				if v == "group-dnl " .. file_direct_host then
 					config_lines[i] = "group-dnl " .. file_direct_host .. "," .. file_white_host
@@ -452,7 +452,7 @@ if uci:get(appname, TCP_NODE, "protocol") == "_shunt" then
 				end
 			end
 		else
-			--当白名单不启用时，创建新组，ipset到shuntlist
+			--When whitelist is not enabled，Create new group，ipsetarriveshuntlist
 			tmp_lines = {
 				"group whitelist",
 				"group-dnl " .. file_white_host,
@@ -477,13 +477,13 @@ if uci:get(appname, TCP_NODE, "protocol") == "_shunt" then
 
 end
 
---只使用gfwlist模式，GFW列表以外的域名及默认使用本地DNS
+--only usegfwlistmodel，GFWDomain names outside the list use local by defaultDNS
 if GFWLIST == "1" and CHNLIST == "0" then DEFAULT_TAG = "chn" end
 
---回中国模式，中国列表以外的域名及默认使用本地DNS
+--Return to China model，Domain names outside the China list use local by defaultDNS
 if CHNLIST == "proxy" then DEFAULT_TAG = "chn" end
 
---全局模式，默认使用远程DNS
+--global mode，Use remote by defaultDNS
 if only_global then
 	DEFAULT_TAG = "gfw"
 	if NO_IPV6_TRUST == "1" and uci:get(appname, TCP_NODE, "protocol") ~= "_shunt" then 
@@ -491,7 +491,7 @@ if only_global then
 	end
 end
 
---是否接受直连 DNS 空响应
+--Whether to accept direct connection DNS Empty response
 if DEFAULT_TAG == "none_noip" then table.insert(config_lines, "noip-as-chnip") end
 
 if DEFAULT_TAG == nil or DEFAULT_TAG == "smart" or DEFAULT_TAG == "none_noip" then DEFAULT_TAG = "none" end
@@ -505,14 +505,14 @@ end
 table.insert(config_lines, "hosts")
 
 if DEFAULT_TAG == "chn" then
-	log(string.format("  - 默认 DNS ：%s", DNS_LOCAL))
+	log(string.format("  - default DNS ：%s", DNS_LOCAL))
 elseif  DEFAULT_TAG == "gfw" then
-	log(string.format("  - 默认 DNS ：%s", DNS_TRUST))
+	log(string.format("  - default DNS ：%s", DNS_TRUST))
 else
-	log(string.format("  - 默认 DNS ：%s", "智能匹配"))
+	log(string.format("  - default DNS ：%s", "Smart matching"))
 end
 
---输出配置文件
+--Output configuration file
 if #config_lines > 0 then
 	for i = 1, #config_lines do
 		line = config_lines[i]
@@ -522,4 +522,4 @@ if #config_lines > 0 then
 	end
 end
 
-log("  - ChinaDNS-NG已作为Dnsmasq上游，如果你自行配置了错误的DNS流程，将会导致域名(直连/代理域名)分流失效！！！")
+log("  - ChinaDNS-NGAlready acted asDnsmasqupstream，If you configure the wrongDNSprocess，will result in domain name(direct connection/Proxy domain name)Shunt failure！！！")
